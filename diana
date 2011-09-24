@@ -1,0 +1,238 @@
+#! /usr/bin/env python2
+
+import urllib2, json, base64
+import sys, os
+from getopt import getopt
+
+MAX_NAME_LEN = 50
+ELLIPSIS = "..."
+HASHES_FILE = os.path.expandvars('$XDG_DATA_HOME/aria2hashes')
+
+def abbrev (value):
+    n = value / 1024.0
+    if n < 1:
+        return '%dB' % value
+    value = n
+    n = value / 1024.0
+    if n < 1:
+        return '%.1fK' % value
+    else:
+        value = n;
+        n = value / 1024.0
+        if n < 1:
+            return '%.1fM' % value
+        else:
+            return '%.1fG' % n
+
+def arrival (download_speed, remaining_length):
+    if (download_speed == 0): return 'n/a'
+    s = remaining_length / download_speed
+    h = s / 3600
+    s = s % 3600
+    m = s / 60
+    s = s % 60
+    result = ""
+    if (h > 0): result += '%dh' % h
+    if (m > 0): result += '%dm' % m
+    result += "%ds" % s
+    return result
+
+def call_func(func, params=[]):
+    jsonreq = json.dumps({'id':'foo', 'method':'aria2.%s' % func, 'params':params})
+    try:
+        c = urllib2.urlopen('http://localhost:6800/jsonrpc', jsonreq)
+    except:
+        print sys.exc_info()
+        exit(1)
+    response = json.loads(c.read())
+    return response
+
+def get_active():
+    return call_func('tellActive')
+
+def get_waiting():
+    return call_func('tellWaiting', [0, 666])
+
+def get_stopped():
+    return call_func('tellStopped', [0, 666])
+
+def get_files(gids):
+    for g in gids:
+        response = call_func('getFiles', [g])
+        if not response:
+            print 'failed on %s.' % g
+        else:
+            downloads = response['result']
+            for d in downloads:
+                selected = d['selected']
+                mark = '[ ]'
+                if selected == 'true':
+                    mark = '[X]'
+                print '%s %2s %s' % (mark, d['index'], d['path'])
+
+def apply_func_on_gids(fn, gids):
+    for g in gids:
+        response = call_func(fn, [g])
+        if not response:
+            print 'failed on %s.' % g
+
+def pause_by_gid(gids):
+    apply_func_on_gids('pause', gids)
+
+def resume_by_gid(gids):
+    apply_func_on_gids('unpause', gids)
+
+def remove_by_gid(gids):
+    apply_func_on_gids('remove', gids)
+
+def clean():
+    downloads = []
+    active = get_active()
+    if active:
+        downloads.extend(active['result'])
+    for d in downloads:
+        if d.has_key('infoHash'):
+            completed_length = int(d['completedLength'])
+            total_length = int(d['totalLength'])
+            if completed_length >= total_length:
+                remove_by_gid([d['gid']])
+
+        
+def add_items(items, options={}):
+    for item in items:
+        response = None
+
+        if item.find('://') != -1:
+            response = call_func('addUri', [[item]])
+        else:
+            item_content = base64.b64encode(open(item).read())
+            if item.endswith('.torrent'):
+                response = call_func('addTorrent', [item_content, [], options])
+            elif item.endswith('.meta4') or item.endswith('.metalink'):
+                response = call_func('addMetalink', [item_content])
+
+        if not response:
+            print 'failed on %s.' % item
+
+def save_kill():
+    hf = open(HASHES_FILE, 'w')
+    downloads = []
+    active = get_active()
+    paused = get_waiting()
+    if active:
+        downloads.extend(active['result'])
+    if paused:
+        downloads.extend(paused['result'])
+    for d in downloads:
+        if d.has_key('infoHash'):
+            gid = d['gid']
+            infoHash = d['infoHash']
+            response = call_func('getFiles', [gid])
+            if response:
+                files = response['result']
+                selection = []
+                for f in files:
+                    index = f['index']
+                    selected = f['selected']
+                    if selected == 'true':
+                        selection.append(index)
+                select_file_argument = ','.join(selection)
+                hf.write('%s:%s\n' % (infoHash, select_file_argument))
+    hf.close()
+    call_func('shutdown')
+
+def pause_all():
+    call_func('pauseAll')
+
+def resume_all():
+    call_func('unpauseAll')
+
+def list_downloads(kind):
+    downloads = None
+
+    if kind == 'active':
+        downloads = get_active()
+    elif kind == 'waiting':
+        downloads = get_waiting()
+    elif kind == 'stopped':
+        downloads = get_stopped()
+
+    if downloads:
+        for r in downloads['result']:
+            completed_length = float(r['completedLength'])
+            total_length = float(r['totalLength'])
+            remaining_length = total_length - completed_length
+            download_speed = float(r['downloadSpeed'])
+            eta = arrival(download_speed, remaining_length)
+            percent = -1;
+
+            if (total_length > 0):
+                percent = 100 * completed_length / total_length
+            else:
+                percent = 100
+
+            dl = download_speed / 1024;
+            ul = float(r['uploadSpeed']) / 1024;
+            name = 'n/a'
+            number_of_seeders = 'n/a'
+            if r.has_key('numSeeders'):
+                number_of_seeders = r['numSeeders']
+            if r.has_key('bittorrent'):
+                bt = r['bittorrent']
+                if bt.has_key('info'):
+                    name = bt['info']['name']
+            if len(name) > MAX_NAME_LEN: name = name[:MAX_NAME_LEN - len(ELLIPSIS)] + ELLIPSIS
+            print "%3s %-50s\t%.1f%%\t%s\t%s\t%.1f\t%.1f\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), dl, ul, number_of_seeders, r['connections'], eta)
+
+def usage():
+    print '''usage: %s <action> [arguments]
+             actions: list, files, paused, stopped, add, remove, pause, resume, sleep, wake, purge, clean, kill''' % os.path.basename(sys.argv[0])
+    sys.exit()
+
+
+def main():
+    opts, args = getopt(sys.argv[1:], 'h', ['help', 'select-file='])
+    options = {}
+
+    for o, a in opts:
+        if o in ('-h', '--help'):
+            usage()
+        else:
+            options.update({o.replace('--',''):a})
+
+    if len(args) > 0:
+        action = args[0]
+        if action == 'list':
+            list_downloads('active')
+        elif action == 'files':
+            get_files(args[1:])
+        elif action == 'paused':
+            list_downloads('waiting')
+        elif action == 'stopped':
+            list_downloads('stopped')
+        elif action == 'add':
+            add_items(args[1:], options)
+        elif action == 'remove':
+            remove_by_gid(args[1:])
+        elif action == 'pause':
+            pause_by_gid(args[1:])
+        elif action == 'resume':
+            resume_by_gid(args[1:])
+        elif action == 'sleep':
+            call_func('pauseAll')
+        elif action == 'wake':
+            call_func('unpauseAll')
+        elif action == 'purge':
+            call_func('purgeDownloadResult')
+        elif action == 'clean':
+            clean()
+        elif action == 'kill':
+            save_kill()
+        else:
+            print 'unknown action: %s' % action
+            exit(1)
+    else:
+        usage()
+
+if __name__ == '__main__':
+    main()

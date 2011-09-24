@@ -1,0 +1,29 @@
+#! /bin/sh
+
+hashes_file=$XDG_DATA_HOME/aria2hashes
+backup_hashes=$XDG_DATA_HOME/aria2hashes.bak
+
+if [ ! -e "$hashes_file" ]
+then
+    if [ -e "$backup_hashes" ]
+    then
+        mv "$backup_hashes" "$hashes_file"
+    fi
+fi
+
+aria2c -D --enable-rpc -j 13 -d ~/tmp -l ~/.aria2/log --on-bt-download-complete ~/bin/aria2_download_complete_hook
+
+for line in $(cat $hashes_file); do
+    hsh=${line%:*}
+    sel=${line#*:}
+
+    for tor in ~/tmp/*.torrent; do
+        match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
+        if [ -n "$match" ]; then
+            echo "$tor"
+            diana --select-file="$sel" add "$tor"
+        fi
+    done
+done
+
+mv "$hashes_file" "$backup_hashes"
