@@ -1,4 +1,4 @@
-# diana
+# get started
 
 To get the list of available actions just call **diana** without parameters.
 
