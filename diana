@@ -1,4 +1,5 @@
 #! /usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import urllib2, json, base64
 import sys, os
@@ -175,18 +176,47 @@ def list_downloads(kind):
             ul = float(r['uploadSpeed']) / 1024;
             name = 'n/a'
             number_of_seeders = 'n/a'
+
+
             if r.has_key('numSeeders'):
                 number_of_seeders = r['numSeeders']
+
             if r.has_key('bittorrent'):
                 bt = r['bittorrent']
                 if bt.has_key('info'):
                     name = bt['info']['name']
+
             if len(name) > MAX_NAME_LEN: name = name[:MAX_NAME_LEN - len(ELLIPSIS)] + ELLIPSIS
+
+            if completed_length >= total_length and sys.stdout.isatty():
+                name = bright_green(name)
+
             print "%3s %-50s\t%.1f%%\t%s\t%s\t%.1f\t%.1f\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), dl, ul, number_of_seeders, r['connections'], eta)
+
+def show_errors():
+    stopped = get_stopped()
+    if stopped:
+        for r in stopped['result']:
+            if r.has_key('status'):
+                status = r['status']
+                if status == 'error':
+                    gid = r['gid']
+                    errorCode = r['errorCode']
+                    error = EXIT_CODES[errorCode]
+                    if sys.stdout.isatty():
+                        error = bright_red(error)
+                    print '%s %s' % (gid, error)
+
+def bright_red(s):
+    return '\x1b[1;31m%s\x1b[0m' % s
+
+def bright_green(s):
+    return '\x1b[1;32m%s\x1b[0m' % s
 
 def usage():
     print '''usage: %s <action> [arguments]
-             actions: list, files, paused, stopped, add, remove, pause, resume, sleep, wake, purge, clean, kill''' % os.path.basename(sys.argv[0])
+             actions: list, files, errors, paused, stopped, add, remove,
+                      pause, resume, sleep, wake, purge, clean, kill''' % os.path.basename(sys.argv[0])
     sys.exit()
 
 
@@ -206,6 +236,8 @@ def main():
             list_downloads('active')
         elif action == 'files':
             get_files(args[1:])
+        elif action == 'errors':
+            show_errors()
         elif action == 'paused':
             list_downloads('waiting')
         elif action == 'stopped':
@@ -233,6 +265,39 @@ def main():
             exit(1)
     else:
         usage()
+
+EXIT_CODES = {
+              '1':'unknown',
+              '2':'timeout',
+              '3':'resource not found',
+              '4':'resources not found',
+              '5':'download speed too slow',
+              '6':'network problem',
+              '7':'unfinished downloads',
+              '8':'resume not supported',
+              '9':'not enough disk space',
+              '10':'piece length differ',
+              '11':'was downloading the same file',
+              '12':'was downloading same info hash',
+              '13':'file already existed',
+              '14':'renaming failed',
+              '15':'could not open existing file',
+              '16':'could not create new or truncate existing',
+              '17':'file I/O',
+              '18':'could not create directory',
+              '19':'name resolution failed',
+              '20':'could not parse metalink',
+              '21':'FTP command failed',
+              '22':'HTTP response header was bad or unexpected',
+              '23':'too many redirections',
+              '24':'HTTP authorization failed',
+              '25':'could not parse bencoded file',
+              '26':'torrent was corrupted or missing informations',
+              '27':'bad magnet URI',
+              '28':'bad/unrecognized option or unexpected option argument',
+              '29':'the remote server was unable to handle the request',
+              '30':'could not parse JSON-RPC request'
+             }
 
 if __name__ == '__main__':
     main()
