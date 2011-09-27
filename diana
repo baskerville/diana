@@ -114,6 +114,8 @@ def add_items(items, options={}):
 
         if not response:
             print 'failed on %s.' % item
+        else:
+            print response['result']
 
 def save_kill():
     hf = open(HASHES_FILE, 'w')
@@ -128,6 +130,9 @@ def save_kill():
         if d.has_key('infoHash'):
             gid = d['gid']
             infoHash = d['infoHash']
+            status = d['status']
+            if status == 'paused':
+                infoHash = '_%s' % infoHash
             response = call_func('getFiles', [gid])
             if response:
                 files = response['result']

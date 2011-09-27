@@ -14,14 +14,19 @@ fi
 aria2c -D --enable-rpc -j 13 -d ~/tmp -l ~/.aria2/log --on-bt-download-complete ~/bin/aria2_download_complete_hook
 
 for line in $(cat $hashes_file); do
-    hsh=${line%:*}
+    rhsh=${line%:*}
     sel=${line#*:}
+    hsh=${rhsh#_}
 
     for tor in ~/tmp/*.torrent; do
         match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
         if [ -n "$match" ]; then
             echo "$tor"
-            diana --select-file="$sel" add "$tor"
+            gid=$(diana --select-file="$sel" add "$tor")
+            case $rhsh in
+                _*)
+                    diana pause $gid;;
+            esac
         fi
     done
 done
