@@ -63,6 +63,8 @@ def get_files(gids):
         if not response:
             print 'failed on %s.' % g
         else:
+            if len(gids) > 1:
+                print '%s: ' % g
             downloads = response['result']
             for d in downloads:
                 selected = d['selected']
