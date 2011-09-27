@@ -283,7 +283,7 @@ def main():
     else:
         usage()
 
-NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'files', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
+NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
 
 EXIT_CODES = {
               '1':'unknown',
