@@ -4,7 +4,7 @@ To get the list of available actions just call **diana** without parameters.
 
 The daemon script is called **dad**.
 
-**diana** is written in Python and uses the JSON RPC interface to communicate to the **aria2** daemon.
+**diana** is written in Python and uses the JSON RPC interface to communicate with the **aria2** daemon.
 
 # tricks
 
