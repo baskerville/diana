@@ -220,8 +220,13 @@ def bright_green(s):
 
 def usage():
     print '''usage: %s <action> [arguments]
-             actions: list, files, errors, paused, stopped, add, remove,
-                      pause, resume, sleep, wake, purge, clean, kill''' % os.path.basename(sys.argv[0])
+             actions: list, paused, stopped, errors,
+                      sleep, wake, purge, clean, kill,
+                      add [--select-file=a-b,d-e,...] item1 [item2 [item3 ...]],
+                      remove gid1 [gid2 [gid3 ...]],
+                      pause gid1 [gid2 [gid3 ...]],
+                      resume gid1 [gid2 [gid3 ...]],
+                      files gid1 [gid2 [gid3 ...]]''' % os.path.basename(sys.argv[0])
     sys.exit()
 
 
@@ -237,24 +242,29 @@ def main():
 
     if len(args) > 0:
         action = args[0]
-        if action == 'list':
-            list_downloads('active')
+        arguments = args[1:]
+        if action in NO_ARGS_ACTIONS and len(arguments) > 0:
+            print 'action \'%s\' takes no arguments' % action
+            sys.exit(1)
+
+        if action == 'add':
+            add_items(arguments, options)
+        elif action == 'remove':
+            remove_by_gid(arguments)
+        elif action == 'pause':
+            pause_by_gid(arguments)
+        elif action == 'resume':
+            resume_by_gid(arguments)
         elif action == 'files':
-            get_files(args[1:])
+            get_files(arguments)
+        elif action == 'list':
+            list_downloads('active')
         elif action == 'errors':
             show_errors()
         elif action == 'paused':
             list_downloads('waiting')
         elif action == 'stopped':
             list_downloads('stopped')
-        elif action == 'add':
-            add_items(args[1:], options)
-        elif action == 'remove':
-            remove_by_gid(args[1:])
-        elif action == 'pause':
-            pause_by_gid(args[1:])
-        elif action == 'resume':
-            resume_by_gid(args[1:])
         elif action == 'sleep':
             call_func('pauseAll')
         elif action == 'wake':
@@ -270,6 +280,8 @@ def main():
             exit(1)
     else:
         usage()
+
+NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'files', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
 
 EXIT_CODES = {
               '1':'unknown',
