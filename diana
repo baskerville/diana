@@ -212,7 +212,7 @@ def show_errors():
                     error = EXIT_CODES[errorCode]
                     if sys.stdout.isatty():
                         error = bright_red(error)
-                    print '%s %s' % (gid, error)
+                    print '%3s %s' % (gid, error)
 
 def bright_red(s):
     return '\x1b[1;31m%s\x1b[0m' % s
@@ -297,7 +297,7 @@ EXIT_CODES = {
               '9':'not enough disk space',
               '10':'piece length differ',
               '11':'was downloading the same file',
-              '12':'was downloading same info hash',
+              '12':'was downloading the same info hash',
               '13':'file already existed',
               '14':'renaming failed',
               '15':'could not open existing file',
