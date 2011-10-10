@@ -65,13 +65,23 @@ def get_files(gids):
         else:
             if len(gids) > 1:
                 print '%s: ' % g
-            downloads = response['result']
-            for d in downloads:
-                selected = d['selected']
+            files = response['result']
+            for f in files:
+                total_length = float(f['length'])
+                completed_length = float(f['completedLength'])
+                percent = 100;
+
+                if (total_length > 0):
+                    percent = 100 * completed_length / total_length
+
+                percent = '%.1f' % percent
+                selected = f['selected']
                 mark = '[ ]'
+
                 if selected == 'true':
                     mark = '[X]'
-                print '%s %2s %s' % (mark, d['index'], d['path'])
+
+                print '%s %2s %5s%% %s' % (mark, f['index'], percent, f['path'])
 
 def apply_func_on_gids(fn, gids):
     for g in gids:
@@ -172,21 +182,16 @@ def list_downloads(kind):
             remaining_length = total_length - completed_length
             download_speed = float(r['downloadSpeed'])
             eta = arrival(download_speed, remaining_length)
-            percent = -1;
+            percent = 100;
 
             if (total_length > 0):
                 percent = 100 * completed_length / total_length
-            else:
-                percent = 100
 
             percent = '%.1f' % percent
-
             byte_download_speed = '%.1f' % (download_speed / 1024)
             byte_upload_speed = '%.1f' % (float(r['uploadSpeed']) / 1024)
-
             name = 'n/a'
             number_of_seeders = 'n/a'
-
 
             if r.has_key('numSeeders'):
                 number_of_seeders = r['numSeeders']
