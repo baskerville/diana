@@ -1,17 +1,29 @@
 #! /bin/sh
 
+diana list > /dev/null 2>&1
+
+if [ $? -eq 0 ]; then
+    echo 'the daemon is already running' >&2
+    exit 1
+fi
+
 hashes_file=$XDG_DATA_HOME/aria2hashes
 backup_hashes=$XDG_DATA_HOME/aria2hashes.bak
 
 if [ ! -e "$hashes_file" ]
 then
-    if [ -e "$backup_hashes" ]
-    then
+    if [ -e "$backup_hashes" ]; then
         mv "$backup_hashes" "$hashes_file"
     fi
 fi
 
-aria2c -D --enable-rpc -j 13 -d ~/tmp -l ~/.aria2/log --on-bt-download-complete ~/bin/aria2_download_complete_hook
+tmp_file=$(mktemp)
+
+sort -u "$hashes_file" > "$tmp_file"
+cp "$tmp_file" "$hashes_file"
+rm "$tmp_file"
+
+aria2c -D --enable-rpc -j 13 -d ~/tmp
 
 for line in $(cat $hashes_file); do
     rhsh=${line%:*}

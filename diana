@@ -43,7 +43,7 @@ def call_func(func, params=[]):
     try:
         c = urllib2.urlopen('http://localhost:6800/jsonrpc', jsonreq)
     except:
-        print sys.exc_info()
+        print >> sys.stderr, sys.exc_info()
         exit(1)
     response = json.loads(c.read())
     return response
@@ -254,7 +254,7 @@ def main():
         action = args[0]
         arguments = args[1:]
         if action in NO_ARGS_ACTIONS and len(arguments) > 0:
-            print 'action \'%s\' takes no arguments' % action
+            print >> sys.stderr, 'action \'%s\' takes no arguments' % action
             sys.exit(1)
 
         if action == 'add':
@@ -286,7 +286,7 @@ def main():
         elif action == 'kill':
             save_kill()
         else:
-            print 'unknown action: %s' % action
+            print >> sys.stderr, 'unknown action: %s' % action
             exit(1)
     else:
         usage()
