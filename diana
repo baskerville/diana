@@ -203,9 +203,6 @@ def list_downloads(kind):
 
             if len(name) > MAX_NAME_LEN: name = name[:MAX_NAME_LEN - len(ELLIPSIS)] + ELLIPSIS
 
-            if completed_length >= total_length and sys.stdout.isatty():
-                name = bright_green(name)
-
             print "%3s %-50s\t%5s%%\t%6s\t%6s\t%5s\t%5s\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), byte_download_speed, byte_upload_speed, number_of_seeders, r['connections'], eta)
 
 def show_errors():
@@ -218,15 +215,7 @@ def show_errors():
                     gid = r['gid']
                     errorCode = r['errorCode']
                     error = EXIT_CODES[errorCode]
-                    if sys.stdout.isatty():
-                        error = bright_red(error)
                     print '%3s %s' % (gid, error)
-
-def bright_red(s):
-    return '\x1b[1;31m%s\x1b[0m' % s
-
-def bright_green(s):
-    return '\x1b[1;32m%s\x1b[0m' % s
 
 def usage():
     print '''usage: %s <action> [arguments]
