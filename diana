@@ -3,11 +3,13 @@
 
 import urllib2, json, base64
 import sys, os
+from subprocess import check_call
 from getopt import getopt
 
 MAX_NAME_LEN = 50
-ELLIPSIS = "..."
+ELLIPSIS = '...'
 HASHES_FILE = os.path.expandvars('$XDG_DATA_HOME/aria2hashes')
+PREVIEW_COMMAND = 'open'
 
 def abbrev (value):
     n = value / 1024.0
@@ -61,7 +63,7 @@ def get_files(gids):
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
-            print 'failed on %s.' % g
+            print 'failed on %s' % g
         else:
             if len(gids) > 1:
                 print '%s: ' % g
@@ -87,7 +89,19 @@ def apply_func_on_gids(fn, gids):
     for g in gids:
         response = call_func(fn, [g])
         if not response:
-            print 'failed on %s.' % g
+            print 'failed on %s' % g
+
+def preview_by_gid(gids):
+    for g in gids:
+        response = call_func('getFiles', [g])
+        if not response:
+            print 'failed on %s' % g
+        else:
+            if len(gids) > 1:
+                print '%s: ' % g
+            files = response['result']
+            for f in files:
+                check_call([PREVIEW_COMMAND, f['path']])
 
 def pause_by_gid(gids):
     apply_func_on_gids('pause', gids)
@@ -125,7 +139,7 @@ def add_items(items, options={}):
                 response = call_func('addMetalink', [item_content])
 
         if not response:
-            print 'failed on %s.' % item
+            print 'failed on %s' % item
         else:
             print response['result']
 
@@ -225,7 +239,8 @@ def usage():
                       remove gid1 [gid2 [gid3 ...]],
                       pause gid1 [gid2 [gid3 ...]],
                       resume gid1 [gid2 [gid3 ...]],
-                      files gid1 [gid2 [gid3 ...]]''' % os.path.basename(sys.argv[0])
+                      files gid1 [gid2 [gid3 ...]],
+                      preview gid1 [gid2 [gid3 ...]]''' % os.path.basename(sys.argv[0])
     sys.exit()
 
 
@@ -250,6 +265,8 @@ def main():
             add_items(arguments, options)
         elif action == 'remove':
             remove_by_gid(arguments)
+        elif action == 'preview':
+            preview_by_gid(arguments)
         elif action == 'pause':
             pause_by_gid(arguments)
         elif action == 'resume':
