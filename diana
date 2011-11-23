@@ -101,7 +101,9 @@ def preview_by_gid(gids):
                 print '%s: ' % g
             files = response['result']
             for f in files:
-                check_call([PREVIEW_COMMAND, f['path']])
+                completed_length = float(f['completedLength'])
+                if completed_length > 0:
+                    check_call([PREVIEW_COMMAND, f['path']])
 
 def pause_by_gid(gids):
     apply_func_on_gids('pause', gids)
