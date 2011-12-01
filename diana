@@ -235,14 +235,23 @@ def show_errors():
 
 def usage():
     print '''usage: %s <action> [arguments]
-             actions: list, paused, stopped, errors,
-                      sleep, wake, purge, clean, kill,
-                      add [--select-file=a-b,d-e,...] item1 [item2 [item3 ...]],
-                      remove gid1 [gid2 [gid3 ...]],
-                      pause gid1 [gid2 [gid3 ...]],
-                      resume gid1 [gid2 [gid3 ...]],
-                      files gid1 [gid2 [gid3 ...]],
-                      preview gid1 [gid2 [gid3 ...]]''' % os.path.basename(sys.argv[0])
+
+       ACTIONS 
+            list
+            paused
+            stopped
+            errors
+            sleep
+            wake
+            purge
+            clean
+            kill
+            add [--select-file=a-b,d-e,...] item1 [item2 ...],
+            remove gid1 [gid2 ...],
+            pause gid1 [gid2 ...],
+            resume gid1 [gid2 ...],
+            files gid1 [gid2 ...],
+            preview gid1 [gid2 ...]''' % os.path.basename(sys.argv[0])
     sys.exit()
 
 
