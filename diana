@@ -3,6 +3,7 @@
 
 import urllib2, json, base64
 import sys, os
+import re
 from subprocess import check_call
 from getopt import getopt
 
@@ -91,7 +92,24 @@ def apply_func_on_gids(fn, gids):
         if not response:
             print 'failed on %s' % g
 
-def preview_by_gid(gids):
+def pattern_match(index, pattern):
+    for p in pattern:
+        if len(p) > 1:
+            first = int(p[0])
+            second = int(p[1])
+            if index >= first and index <= second:
+                return True
+        else:
+            first = int(p[0])
+            if index == first:
+                return True
+    return False
+
+def preview_by_gid(gids, options):
+    select_file = []
+    if options.has_key('select-file'):
+        select_file = map(lambda x: re.split('-', x), re.split(',', options['select-file']))
+
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
@@ -101,6 +119,10 @@ def preview_by_gid(gids):
                 print '%s: ' % g
             files = response['result']
             for f in files:
+                if len(select_file) > 0:
+                    index = int(f['index'])
+                    if not pattern_match(index, select_file):
+                        continue
                 completed_length = float(f['completedLength'])
                 if completed_length > 0:
                     check_call([PREVIEW_COMMAND, f['path']])
@@ -237,6 +259,12 @@ def usage():
     print '''usage: %s <action> [arguments]
 
        ACTIONS 
+            add [--select-file=a-b,d-e,...] item1 [item2 ...],
+            remove gid1 [gid2 ...],
+            pause gid1 [gid2 ...],
+            resume gid1 [gid2 ...],
+            files gid1 [gid2 ...],
+            preview gid1 [gid2 ...]list
             list
             paused
             stopped
@@ -245,13 +273,7 @@ def usage():
             wake
             purge
             clean
-            kill
-            add [--select-file=a-b,d-e,...] item1 [item2 ...],
-            remove gid1 [gid2 ...],
-            pause gid1 [gid2 ...],
-            resume gid1 [gid2 ...],
-            files gid1 [gid2 ...],
-            preview gid1 [gid2 ...]''' % os.path.basename(sys.argv[0])
+            kill''' % os.path.basename(sys.argv[0])
     sys.exit()
 
 
@@ -277,7 +299,7 @@ def main():
         elif action == 'remove':
             remove_by_gid(arguments)
         elif action == 'preview':
-            preview_by_gid(arguments)
+            preview_by_gid(arguments, options)
         elif action == 'pause':
             pause_by_gid(arguments)
         elif action == 'resume':
