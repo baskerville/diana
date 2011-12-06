@@ -293,6 +293,9 @@ def main():
         if action in NO_ARGS_ACTIONS and len(arguments) > 0:
             print >> sys.stderr, 'action \'%s\' takes no arguments' % action
             sys.exit(1)
+        elif not action in NO_ARGS_ACTIONS and len(arguments) < 1:
+            print >> sys.stderr, 'no arguments given for action \'%s\'' % action
+            sys.exit(1)
 
         if action == 'add':
             add_items(arguments, options)
