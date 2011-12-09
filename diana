@@ -241,7 +241,15 @@ def list_downloads(kind):
 
             if len(name) > MAX_NAME_LEN: name = name[:MAX_NAME_LEN - len(ELLIPSIS)] + ELLIPSIS
 
-            print "%3s %-50s\t%5s%%\t%6s\t%6s\t%5s\t%5s\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), byte_download_speed, byte_upload_speed, number_of_seeders, r['connections'], eta)
+            output_line = "%3s %-50s\t%5s%%\t%6s\t%6s\t%5s\t%5s\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), byte_download_speed, byte_upload_speed, number_of_seeders, r['connections'], eta)
+
+            if completed_length >= total_length and sys.stdout.isatty():
+                output_line = green(output_line)
+
+            print output_line
+
+def green(s):
+    return '\033[1;32m%s\033[0m' % s
 
 def show_errors():
     stopped = get_stopped()
