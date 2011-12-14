@@ -1,6 +1,6 @@
 # diana -- a command line interface to the aria2 daemon
 
-![diana] (http://f.cl.ly/items/3l3l3O3b340o071g241z/diana.jpg)
+![diana] (http://blobs.ge.tt/4EcnB8B/diana_logo.jpg)
 
 ## Get Started
 
