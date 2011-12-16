@@ -298,10 +298,11 @@ def main():
     if len(args) > 0:
         action = args[0]
         arguments = args[1:]
+
         if action in NO_ARGS_ACTIONS and len(arguments) > 0:
             print >> sys.stderr, 'action \'%s\' takes no arguments' % action
             sys.exit(1)
-        elif not action in NO_ARGS_ACTIONS and len(arguments) < 1:
+        elif action in ARGS_ACTIONS and len(arguments) < 1:
             print >> sys.stderr, 'no arguments given for action \'%s\'' % action
             sys.exit(1)
 
@@ -342,6 +343,7 @@ def main():
         usage()
 
 NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
+ARGS_ACTIONS = ('add', 'remove', 'preview', 'pause', 'resume', 'files')
 
 EXIT_CODES = {
               '1':'unknown',
