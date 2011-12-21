@@ -1,25 +1,68 @@
-# diana -- a command line interface to the aria2 daemon
-
 ![diana] (https://github.com/baskerville/diana/raw/master/preview/diana_logo.jpg)
 
-## Get Started
+    SYNOPSIS
+        diana <action> [arguments]
 
-To get the list of available actions just call **diana** without parameters.
+    ACTIONS 
+        list
+            Show the list of active downloads.
 
-The daemon script is called **dad**.
+        paused
+            Show the list of paused downloads.
 
-**diana** is written in Python and uses the JSON RPC interface to communicate with the **aria2** daemon.
+        stopped
+            Show the list of stopped downloads.
 
-## Advanced Usage
+        errors
+            Show the list of encountered errors.
 
-If you want to download only certain files inside a torrent :
+        sleep
+            Pause all the active downloads.
 
-- Get the index of the relevant files with **tl**:
+        wake
+            Resume all the paused downloads.
+
+        purge
+            Clear the list of stopped downloads and errors.
+
+        clean
+            Stop seeding completed downloads.
+
+        kill
+            Kill the daemon.
+
+        add [--select-file=...] ITEM ...
+            Download the given items (local or remote URLs to torrents, etc.).
+
+        remove GID ...
+            Remove the downloads corresponding to the given GIDs.
+
+        pause GID ...
+            Pause the downloads corresponding to the given GIDs.
+
+        resume GID
+            Resume the downloads corresponding to the given GIDs.
+
+        files GID ...
+            Show the files owned by the downloads corresponding to the given GIDs.
+
+        preview [--select-file=...] GID ...
+            Preview all the files from all the downloads corresponding to the given GIDs.
+
+
+## Prerequisites
+
+First launch the daemon which is called `dad`.
+
+## Get the File Indexes
+
+This function might help:
 
     tl () {
             aria2c -S "$@" | grep '\./'
     }
 
-- Call **diana** with the appropriate option (see the manual for **aria2c** and search for **--select-file**):
 
-    diana --select-file=foo add bar.torrent
+## Dependencies
+
+`aria2` and `python3`.

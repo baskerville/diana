@@ -1,7 +1,7 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import urllib2, json, base64
+import urllib.request, json, base64
 import sys, os
 import re
 from subprocess import check_call
@@ -42,13 +42,17 @@ def arrival (download_speed, remaining_length):
     return result
 
 def call_func(func, params=[]):
-    jsonreq = json.dumps({'id':'foo', 'method':'aria2.%s' % func, 'params':params})
+    jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf8')
     try:
-        c = urllib2.urlopen('http://localhost:6800/jsonrpc', jsonreq)
-    except:
-        print >> sys.stderr, sys.exc_info()
+        c = urllib.request.urlopen('http://localhost:6800/jsonrpc', jsonreq)
+    except err:
+        if err.code == 110:
+            print('the daemon is not running', file = sys.stderr)
+        else:
+            print(sys.exc_info(), file=sys.stderr)
         exit(1)
-    response = json.loads(c.read())
+    data = c.read().decode('utf8')
+    response = json.loads(data)
     return response
 
 def get_active():
@@ -64,10 +68,10 @@ def get_files(gids):
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
-            print 'failed on %s' % g
+            print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                print '%s: ' % g
+                print('%s: ' % g)
             files = response['result']
             for f in files:
                 total_length = float(f['length'])
@@ -84,13 +88,13 @@ def get_files(gids):
                 if selected == 'true':
                     mark = '[X]'
 
-                print '%s %2s %5s%% %s' % (mark, f['index'], percent, f['path'])
+                print('%s %2s %5s%% %s' % (mark, f['index'], percent, f['path']))
 
 def apply_func_on_gids(fn, gids):
     for g in gids:
         response = call_func(fn, [g])
         if not response:
-            print 'failed on %s' % g
+            print('failed on %s' % g)
 
 def pattern_match(index, pattern):
     for p in pattern:
@@ -107,16 +111,16 @@ def pattern_match(index, pattern):
 
 def preview_by_gid(gids, options):
     select_file = []
-    if options.has_key('select-file'):
-        select_file = map(lambda x: re.split('-', x), re.split(',', options['select-file']))
+    if 'select-file' in options:
+        select_file = [re.split('-', x) for x in re.split(',', options['select-file'])]
 
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
-            print 'failed on %s' % g
+            print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                print '%s: ' % g
+                print('%s: ' % g)
             files = response['result']
             for f in files:
                 if len(select_file) > 0:
@@ -142,13 +146,12 @@ def clean():
     if active:
         downloads.extend(active['result'])
     for d in downloads:
-        if d.has_key('infoHash'):
+        if 'infoHash' in d:
             completed_length = int(d['completedLength'])
             total_length = int(d['totalLength'])
             if completed_length >= total_length:
                 remove_by_gid([d['gid']])
 
-        
 def add_items(items, options={}):
     for item in items:
         response = None
@@ -163,9 +166,9 @@ def add_items(items, options={}):
                 response = call_func('addMetalink', [item_content])
 
         if not response:
-            print 'failed on %s' % item
+            print('failed on %s' % item)
         else:
-            print response['result']
+            print(response['result'])
 
 def save_kill():
     hf = open(HASHES_FILE, 'w')
@@ -177,7 +180,7 @@ def save_kill():
     if paused:
         downloads.extend(paused['result'])
     for d in downloads:
-        if d.has_key('infoHash'):
+        if 'infoHash' in d:
             gid = d['gid']
             infoHash = d['infoHash']
             status = d['status']
@@ -231,12 +234,12 @@ def list_downloads(kind):
             name = 'n/a'
             number_of_seeders = 'n/a'
 
-            if r.has_key('numSeeders'):
+            if 'numSeeders' in r:
                 number_of_seeders = r['numSeeders']
 
-            if r.has_key('bittorrent'):
+            if 'bittorrent' in r:
                 bt = r['bittorrent']
-                if bt.has_key('info'):
+                if 'info' in bt:
                     name = bt['info']['name']
 
             if len(name) > MAX_NAME_LEN: name = name[:MAX_NAME_LEN - len(ELLIPSIS)] + ELLIPSIS
@@ -249,7 +252,7 @@ def list_downloads(kind):
                 elif download_speed > 0:
                     output_line = blue(output_line)
 
-            print output_line
+            print(output_line)
 
 def green(s):
     return '\033[1;32m%s\033[0m' % s
@@ -261,33 +264,66 @@ def show_errors():
     stopped = get_stopped()
     if stopped:
         for r in stopped['result']:
-            if r.has_key('status'):
+            if 'status' in r:
                 status = r['status']
                 if status == 'error':
                     gid = r['gid']
                     errorCode = r['errorCode']
                     error = EXIT_CODES[errorCode]
-                    print '%3s %s' % (gid, error)
+                    print('%3s %s' % (gid, error))
 
 def usage():
-    print '''usage: %s <action> [arguments]
+    print('''
+SYNOPSIS
+    %s <action> [arguments]
 
-       ACTIONS 
-            add [--select-file=a-b,d-e,...] item1 [item2 ...],
-            remove gid1 [gid2 ...],
-            pause gid1 [gid2 ...],
-            resume gid1 [gid2 ...],
-            files gid1 [gid2 ...],
-            preview gid1 [gid2 ...]list
-            list
-            paused
-            stopped
-            errors
-            sleep
-            wake
-            purge
-            clean
-            kill''' % os.path.basename(sys.argv[0])
+ACTIONS 
+    list
+        Show the list of active downloads.
+
+    paused
+        Show the list of paused downloads.
+
+    stopped
+        Show the list of stopped downloads.
+
+    errors
+        Show the list of encountered errors.
+
+    sleep
+        Pause all the active downloads.
+
+    wake
+        Resume all the paused downloads.
+
+    purge
+        Clear the list of stopped downloads and errors.
+
+    clean
+        Stop seeding completed downloads.
+
+    kill
+        Kill the daemon.
+
+    add [--select-file=...] ITEM ...
+        Download the given items (local or remote URLs to torrents, etc.).
+
+    remove GID ...
+        Remove the downloads corresponding to the given GIDs.
+
+    pause GID ...
+        Pause the downloads corresponding to the given GIDs.
+
+    resume GID
+        Resume the downloads corresponding to the given GIDs.
+
+    files GID ...
+        Show the files owned by the downloads corresponding to the given GIDs.
+
+    preview [--select-file=...] GID ...
+        Preview all the files from all the downloads corresponding to the given GIDs.
+
+    ''' % os.path.basename(sys.argv[0]))
     sys.exit()
 
 
@@ -306,10 +342,10 @@ def main():
         arguments = args[1:]
 
         if action in NO_ARGS_ACTIONS and len(arguments) > 0:
-            print >> sys.stderr, 'action \'%s\' takes no arguments' % action
+            print('action \'%s\' takes no arguments' % action, file=sys.stderr)
             sys.exit(1)
         elif action in ARGS_ACTIONS and len(arguments) < 1:
-            print >> sys.stderr, 'no arguments given for action \'%s\'' % action
+            print('no arguments given for action \'%s\'' % action, file=sys.stderr)
             sys.exit(1)
 
         if action == 'add':
@@ -343,7 +379,7 @@ def main():
         elif action == 'kill':
             save_kill()
         else:
-            print >> sys.stderr, 'unknown action: %s' % action
+            print('unknown action: %s' % action, file=sys.stderr)
             exit(1)
     else:
         usage()
