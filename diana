@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import urllib.request, json, base64
+import urllib.request, urllib.error, json, base64
 import sys, os
 import re
 from subprocess import check_call
@@ -45,8 +45,9 @@ def call_func(func, params=[]):
     jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf8')
     try:
         c = urllib.request.urlopen('http://localhost:6800/jsonrpc', jsonreq)
-    except err:
-        if err.code == 110:
+    except urllib.error.URLError as err:
+        code = err.reason.errno
+        if code == 111:
             print('the daemon is not running', file = sys.stderr)
         else:
             print(sys.exc_info(), file=sys.stderr)
