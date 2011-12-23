@@ -42,7 +42,7 @@ def arrival (download_speed, remaining_length):
     return result
 
 def call_func(func, params=[]):
-    jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf8')
+    jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf-8')
     try:
         c = urllib.request.urlopen('http://localhost:6800/jsonrpc', jsonreq)
     except urllib.error.URLError as err:
@@ -52,7 +52,7 @@ def call_func(func, params=[]):
         else:
             print(sys.exc_info(), file=sys.stderr)
         exit(1)
-    data = c.read().decode('utf8')
+    data = c.read().decode('utf-8')
     response = json.loads(data)
     return response
 
@@ -160,7 +160,7 @@ def add_items(items, options={}):
         if item.find('://') != -1:
             response = call_func('addUri', [[item]])
         else:
-            item_content = base64.b64encode(open(item).read())
+            item_content = base64.b64encode(open(item, 'rb').read()).decode('utf-8')
             if item.endswith('.torrent'):
                 response = call_func('addTorrent', [item_content, [], options])
             elif item.endswith('.meta4') or item.endswith('.metalink'):
