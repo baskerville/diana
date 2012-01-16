@@ -165,13 +165,13 @@ def add_items(items, options={}):
         response = None
 
         if item.find('://') != -1:
-            response = call_func('addUri', [[item]])
+            response = call_func('addUri', [[item], options])
         else:
             item_content = base64.b64encode(open(item, 'rb').read()).decode('utf-8')
             if item.endswith('.torrent'):
                 response = call_func('addTorrent', [item_content, [], options])
             elif item.endswith('.meta4') or item.endswith('.metalink'):
-                response = call_func('addMetalink', [item_content])
+                response = call_func('addMetalink', [item_content, options])
 
         if not response:
             print('failed on %s' % item)
@@ -336,7 +336,7 @@ ACTIONS
 
 
 def main():
-    opts, args = getopt(sys.argv[1:], 'h', ['help', 'select-file='])
+    opts, args = getopt(sys.argv[1:], 'h', ['help', 'out=', 'header=', 'select-file='])
     options = {}
 
     for o, a in opts:
