@@ -7,7 +7,6 @@ import sys, os
 import re
 from subprocess import check_call
 from getopt import getopt
-from pprint import pprint
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
@@ -275,7 +274,6 @@ def list_downloads(kind):
                     output_line = blue(output_line)
 
             print(output_line)
-            # pprint(r)
 
 def green(s):
     return '\033[1;32m%s\033[0m' % s
