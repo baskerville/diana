@@ -3,7 +3,7 @@
 diana list > /dev/null 2>&1
 
 if [ $? -eq 0 ]; then
-    echo 'the daemon is already running' >&2
+    [ -t 2 ] && echo 'the daemon is already running' >&2
     exit 1
 fi
 
@@ -33,7 +33,7 @@ for line in $(cat $hashes_file); do
     for tor in ~/tmp/*.torrent; do
         match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
         if [ -n "$match" ]; then
-            echo "$tor"
+            [ -t 1 ] && echo "$tor"
             gid=$(diana --select-file="$sel" add "$tor")
             case $rhsh in
                 _*)
