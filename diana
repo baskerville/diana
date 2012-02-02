@@ -291,7 +291,7 @@ def show_errors():
                     gid = r['gid']
                     errorCode = r['errorCode']
                     error = EXIT_CODES[errorCode]
-                    print('%3s %s' % (gid, error))
+                    print('%3s %s (%s)' % (gid, error, errorCode))
 
 def usage():
     print('''
@@ -335,7 +335,7 @@ ACTIONS
     pause GID ...
         Pause the downloads corresponding to the given GIDs.
 
-    resume GID
+    resume GID ...
         Resume the downloads corresponding to the given GIDs.
 
     files GID ...
@@ -349,7 +349,7 @@ ACTIONS
 
 
 def main():
-    opts, args = getopt(sys.argv[1:], 'h', ['help', 'out=', 'header=', 'select-file='])
+    opts, args = getopt(sys.argv[1:], 'h', ['help', 'out=', 'header=', 'referer=', 'user-agent=', 'select-file='])
     options = {}
 
     for o, a in opts:
