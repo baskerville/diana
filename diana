@@ -79,7 +79,10 @@ def get_files(gids):
             print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                print('%s: ' % g)
+                if sys.stdout.isatty():
+                    print('%s: ' % magenta(g))
+                else:
+                    print('%s: ' % g)
             files = response['result']
             for f in files:
                 total_length = float(f['length'])
@@ -280,6 +283,9 @@ def green(s):
 
 def blue(s):
     return '\033[1;34m%s\033[0m' % s
+
+def magenta(s):
+    return '\033[1;35m%s\033[0m' % s
 
 def show_errors():
     stopped = get_stopped()
