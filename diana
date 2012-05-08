@@ -12,6 +12,7 @@ MAX_NAME_LEN = 50
 ELLIPSIS = '...'
 HASHES_FILE = os.path.expandvars('$XDG_DATA_HOME/aria2hashes')
 PREVIEW_COMMAND = 'open'
+INFO_COMMAND = 'fileinfo'
 
 def abbrev (value):
     n = value / 1024.0
@@ -120,7 +121,7 @@ def pattern_match(index, pattern):
                 return True
     return False
 
-def preview_by_gid(gids, options):
+def command_by_gid(command, gids, options):
     select_file = []
     if 'select-file' in options:
         select_file = [re.split('-', x) for x in re.split(',', options['select-file'])]
@@ -131,7 +132,10 @@ def preview_by_gid(gids, options):
             print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                print('%s: ' % g)
+                if sys.stdout.isatty():
+                    print('%s: ' % magenta(g))
+                else:
+                    print('%s: ' % g)
             files = response['result']
             for f in files:
                 if len(select_file) > 0:
@@ -140,7 +144,13 @@ def preview_by_gid(gids, options):
                         continue
                 completed_length = float(f['completedLength'])
                 if completed_length > 0:
-                    check_call([PREVIEW_COMMAND, f['path']])
+                    check_call([command, f['path']])
+
+def info_by_gid(gids, options):
+    command_by_gid(INFO_COMMAND, gids, options)
+
+def preview_by_gid(gids, options):
+    command_by_gid(PREVIEW_COMMAND, gids, options)
 
 def pause_by_gid(gids):
     apply_func_on_gids('pause', gids)
@@ -167,7 +177,7 @@ def add_items(items, options={}):
     for item in items:
         response = None
 
-        if item.find('://') != -1:
+        if item.find('://') != -1 or item.startswith('magnet:'):
             response = call_func('addUri', [[item], options])
         else:
             item_content = base64.b64encode(open(item, 'rb').read()).decode('utf-8')
@@ -297,7 +307,7 @@ def show_errors():
                     gid = r['gid']
                     errorCode = r['errorCode']
                     error = EXIT_CODES[errorCode]
-                    print('%3s %s (%s)' % (gid, error, errorCode))
+                    print('%3s %s (error %s)' % (gid, error, errorCode))
 
 def usage():
     print('''
@@ -347,6 +357,9 @@ ACTIONS
     files GID ...
         Show the files owned by the downloads corresponding to the given GIDs.
 
+    info [--select-file=...] GID ...
+        Retrieve informations regarding the given GIDs.
+
     preview [--select-file=...] GID ...
         Preview all the files from all the downloads corresponding to the given GIDs.
 
@@ -379,6 +392,8 @@ def main():
             add_items(arguments, options)
         elif action == 'remove':
             remove_by_gid(arguments)
+        elif action == 'info':
+            info_by_gid(arguments, options)
         elif action == 'preview':
             preview_by_gid(arguments, options)
         elif action == 'pause':

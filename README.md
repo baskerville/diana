@@ -46,6 +46,9 @@
         files GID ...
             Show the files owned by the downloads corresponding to the given GIDs.
 
+        info [--select-file=...] GID ...
+            Retrieve informations regarding the given GIDs.
+
         preview [--select-file=...] GID ...
             Preview all the files from all the downloads corresponding to the given GIDs.
 
