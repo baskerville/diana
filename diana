@@ -291,15 +291,6 @@ def list_downloads(kind):
 
             print(output_line)
 
-def green(s):
-    return '\033[1;32m%s\033[0m' % s
-
-def blue(s):
-    return '\033[1;34m%s\033[0m' % s
-
-def magenta(s):
-    return '\033[1;35m%s\033[0m' % s
-
 def show_errors():
     stopped = get_stopped()
     if stopped:
@@ -311,6 +302,32 @@ def show_errors():
                     errorCode = r['errorCode']
                     error = EXIT_CODES[errorCode]
                     print('%3s %s (error %s)' % (gid, error, errorCode))
+
+def show_stats():
+    gs = call_func('getGlobalStat')
+    stats = gs['result']
+    for key in sorted(stats.keys()):
+        value = stats[key]
+        if sys.stdout.isatty():
+            print('%24s: ' % grey(key), end='')
+        else:
+            print(key, end='')
+        if 'Speed' in key:
+            print('%s/s' % abbrev(float(value)))
+        else:
+            print(value)
+
+def grey(s):
+    return '\033[1;30m%s\033[0m' % s
+
+def green(s):
+    return '\033[1;32m%s\033[0m' % s
+
+def blue(s):
+    return '\033[1;34m%s\033[0m' % s
+
+def magenta(s):
+    return '\033[1;35m%s\033[0m' % s
 
 def usage():
     print('''
@@ -329,6 +346,9 @@ ACTIONS
 
     errors
         Show the list of encountered errors.
+
+    stats
+        Show download bandwidth statistics.
 
     sleep
         Pause all the active downloads.
@@ -414,6 +434,8 @@ def main():
             list_downloads('active')
         elif action == 'errors':
             show_errors()
+        elif action == 'stats':
+            show_stats()
         elif action == 'paused':
             list_downloads('waiting')
         elif action == 'stopped':
@@ -434,7 +456,7 @@ def main():
     else:
         usage()
 
-NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
+NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'stats', 'sleep', 'wake', 'purge', 'clean', 'kill')
 ARGS_ACTIONS = ('add', 'remove', 'forcerm', 'preview', 'pause', 'resume', 'files')
 
 EXIT_CODES = {

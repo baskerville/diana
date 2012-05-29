@@ -16,6 +16,9 @@
         errors
             Show the list of encountered errors.
 
+        stats
+            Show download bandwidth statistics.
+
         sleep
             Pause all the active downloads.
 
