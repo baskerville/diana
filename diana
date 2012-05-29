@@ -161,6 +161,9 @@ def resume_by_gid(gids):
 def remove_by_gid(gids):
     apply_func_on_gids('remove', gids)
 
+def forcerm_by_gid(gids):
+    apply_func_on_gids('forceRemove', gids)
+
 def clean():
     downloads = []
     active = get_active()
@@ -348,6 +351,9 @@ ACTIONS
     remove GID ...
         Remove the downloads corresponding to the given GIDs.
 
+    forcerm GID ...
+        Forcibly remove the downloads corresponding to the given GIDs.
+
     pause GID ...
         Pause the downloads corresponding to the given GIDs.
 
@@ -392,6 +398,8 @@ def main():
             add_items(arguments, options)
         elif action == 'remove':
             remove_by_gid(arguments)
+        elif action == 'forcerm':
+            forcerm_by_gid(arguments)
         elif action == 'info':
             info_by_gid(arguments, options)
         elif action == 'preview':
@@ -427,7 +435,7 @@ def main():
         usage()
 
 NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'sleep', 'wake', 'purge', 'clean', 'kill')
-ARGS_ACTIONS = ('add', 'remove', 'preview', 'pause', 'resume', 'files')
+ARGS_ACTIONS = ('add', 'remove', 'forcerm', 'preview', 'pause', 'resume', 'files')
 
 EXIT_CODES = {
               '1':'unknown',

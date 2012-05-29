@@ -37,6 +37,9 @@
         remove GID ...
             Remove the downloads corresponding to the given GIDs.
 
+        forcerm GID ...
+            Forcibly remove the downloads corresponding to the given GIDs.
+
         pause GID ...
             Pause the downloads corresponding to the given GIDs.
 
