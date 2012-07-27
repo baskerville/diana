@@ -91,8 +91,6 @@ def get_files(gids):
                 completed_length = float(f['completedLength'])
                 percent = 100
 
-                print(type(percent))
-
                 if (total_length > 0):
                     percent = 100 * completed_length / total_length
 
