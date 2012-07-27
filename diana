@@ -13,6 +13,10 @@ ELLIPSIS = '...'
 HASHES_FILE = os.path.expandvars('$XDG_DATA_HOME/aria2hashes')
 PREVIEW_COMMAND = 'open'
 INFO_COMMAND = 'fileinfo'
+BLACK = 30
+GREEN = 32
+BLUE = 34
+MAGENTA = 35
 
 def abbrev (value):
     n = value / 1024.0
@@ -80,15 +84,14 @@ def get_files(gids):
             print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                if sys.stdout.isatty():
-                    print('%s: ' % magenta(g))
-                else:
-                    print('%s: ' % g)
+                print('%s: ' % magenta(g))
             files = response['result']
             for f in files:
                 total_length = float(f['length'])
                 completed_length = float(f['completedLength'])
-                percent = 100;
+                percent = 100
+
+                print(type(percent))
 
                 if (total_length > 0):
                     percent = 100 * completed_length / total_length
@@ -100,7 +103,12 @@ def get_files(gids):
                 if selected == 'true':
                     mark = '[X]'
 
-                print('%s %2s %5s%% %s' % (mark, f['index'], percent, f['path']))
+                output_line = '%s %2s %5s%% %s' % (mark, f['index'], percent, f['path'])
+
+                if completed_length >= total_length:
+                    output_line = green(output_line)
+
+                print(output_line)
 
 def apply_func_on_gids(fn, gids):
     for g in gids:
@@ -132,10 +140,7 @@ def command_by_gid(command, gids, options):
             print('failed on %s' % g)
         else:
             if len(gids) > 1:
-                if sys.stdout.isatty():
-                    print('%s: ' % magenta(g))
-                else:
-                    print('%s: ' % g)
+                print('%s: ' % magenta(g))
             files = response['result']
             for f in files:
                 if len(select_file) > 0:
@@ -283,11 +288,10 @@ def list_downloads(kind):
 
             output_line = "%3s %-50s\t%5s%%\t%6s\t%6s\t%5s\t%5s\t%s/%s\t%s" % (r['gid'], name, percent, abbrev(completed_length), abbrev(total_length), byte_download_speed, byte_upload_speed, number_of_seeders, r['connections'], eta)
 
-            if sys.stdout.isatty():
-                if completed_length >= total_length:
-                    output_line = green(output_line)
-                elif download_speed > 0:
-                    output_line = blue(output_line)
+            if completed_length >= total_length:
+                output_line = green(output_line)
+            elif download_speed > 0:
+                output_line = blue(output_line)
 
             print(output_line)
 
@@ -308,26 +312,29 @@ def show_stats():
     stats = gs['result']
     for key in sorted(stats.keys()):
         value = stats[key]
-        if sys.stdout.isatty():
-            print('%24s: ' % grey(key), end='')
-        else:
-            print(key, end='')
+        print('%24s: ' % grey(key), end='')
         if 'Speed' in key:
             print('%s/s' % abbrev(float(value)))
         else:
             print(value)
 
 def grey(s):
-    return '\033[1;30m%s\033[0m' % s
+    return colored_string(BLACK, s)
 
 def green(s):
-    return '\033[1;32m%s\033[0m' % s
+    return colored_string(GREEN, s)
 
 def blue(s):
-    return '\033[1;34m%s\033[0m' % s
+    return colored_string(BLUE, s)
 
 def magenta(s):
-    return '\033[1;35m%s\033[0m' % s
+    return colored_string(MAGENTA, s)
+
+def colored_string(c, s):
+    if sys.stdout.isatty():
+        return '\033[1;%im%s\033[0m' % (c, s)
+    else:
+        return s
 
 def usage():
     print('''
