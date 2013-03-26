@@ -339,7 +339,7 @@ def usage():
 SYNOPSIS
     %s <action> [arguments]
 
-ACTIONS 
+ACTIONS
     list
         Show the list of active downloads.
 
