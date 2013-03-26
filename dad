@@ -2,46 +2,42 @@
 
 diana list > /dev/null 2>&1
 
-if [ $? -eq 0 ]; then
-    echo 'the daemon is already running' >&2
+if [ $? -eq 0 ] ; then
+    print '%s\n' 'the daemon is already running' >&2
     exit 1
 fi
 
-DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-"$HOME"}}
-hashes_file="${XDG_DATA_HOME}/aria2hashes"
-backup_hashes="${XDG_DATA_HOME}/aria2hashes.bak"
+DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-${HOME}}}
+HASHES_FILE=${XDG_DATA_HOME}/aria2hashes
+BACKUP_HASHES=${HASHES_FILE}.bak
 
-if [ ! -e "$hashes_file" ]
-then
-    if [ -e "$backup_hashes" ]; then
-        mv "$backup_hashes" "$hashes_file"
-    fi
-fi
+[ ! -e "$HASHES_FILE" -a -e "$BACKUP_HASHES" ] && mv "$BACKUP_HASHES" "$HASHES_FILE"
 
 tmp_file=$(mktemp)
-
-sort -u "$hashes_file" > "$tmp_file"
-cp "$tmp_file" "$hashes_file"
+sort -u "$HASHES_FILE" > "$tmp_file"
+cp "$tmp_file" "$HASHES_FILE"
 rm "$tmp_file"
 
 aria2c -D --enable-rpc -j 13 -d "$DOWNLOAD_DIR"
 
-for line in $(cat $hashes_file); do
+for line in $(cat "$HASHES_FILE") ; do
     rhsh=${line%:*}
     sel=${line#*:}
     hsh=${rhsh#_}
 
-    for tor in "$DOWNLOAD_DIR"/*.torrent; do
+    for tor in "$DOWNLOAD_DIR"/*.torrent ; do
         match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
-        if [ -n "$match" ]; then
-            echo "$tor"
+        if [ -n "$match" ] ; then
+            printf '%s\n' "$tor"
             gid=$(diana --select-file="$sel" add "$tor")
+            [ $? -ne 0 ] && exit 1
             case $rhsh in
                 _*)
-                    diana pause $gid;;
+                    diana pause $gid
+                    ;;
             esac
         fi
     done
 done
 
-mv "$hashes_file" "$backup_hashes"
+mv "$HASHES_FILE" "$BACKUP_HASHES"
