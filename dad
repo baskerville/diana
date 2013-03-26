@@ -7,8 +7,9 @@ if [ $? -eq 0 ]; then
     exit 1
 fi
 
-hashes_file=$XDG_DATA_HOME/aria2hashes
-backup_hashes=$XDG_DATA_HOME/aria2hashes.bak
+DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-"$HOME"}}
+hashes_file="${XDG_DATA_HOME}/aria2hashes"
+backup_hashes="${XDG_DATA_HOME}/aria2hashes.bak"
 
 if [ ! -e "$hashes_file" ]
 then
@@ -23,14 +24,14 @@ sort -u "$hashes_file" > "$tmp_file"
 cp "$tmp_file" "$hashes_file"
 rm "$tmp_file"
 
-aria2c -D --enable-rpc -j 13 -d ~/tmp
+aria2c -D --enable-rpc -j 13 -d "$DOWNLOAD_DIR"
 
 for line in $(cat $hashes_file); do
     rhsh=${line%:*}
     sel=${line#*:}
     hsh=${rhsh#_}
 
-    for tor in ~/tmp/*.torrent; do
+    for tor in "$DOWNLOAD_DIR"/*.torrent; do
         match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
         if [ -n "$match" ]; then
             echo "$tor"
