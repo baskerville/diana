@@ -3,7 +3,7 @@
 diana list > /dev/null 2>&1
 
 if [ $? -eq 0 ] ; then
-    print '%s\n' 'the daemon is already running' >&2
+    print '%s.\n' 'The daemon is already running' >&2
     exit 1
 fi
 
