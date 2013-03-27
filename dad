@@ -8,7 +8,7 @@ if [ $? -eq 0 ] ; then
 fi
 
 DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-${HOME}}}
-HASHES_FILE=${XDG_DATA_HOME}/aria2hashes
+HASHES_FILE=${XDG_DATA_HOME:-${HOME}/.local/share}/diana.lst
 BACKUP_HASHES=${HASHES_FILE}.bak
 
 [ ! -e "$HASHES_FILE" -a -e "$BACKUP_HASHES" ] && mv "$BACKUP_HASHES" "$HASHES_FILE"

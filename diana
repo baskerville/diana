@@ -1,16 +1,19 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import urllib.request, json, base64
-from urllib.error import URLError, HTTPError
-import sys, os
+import os
 import re
+import sys
+import json
+import base64
+import urllib.request
+from urllib.error import URLError, HTTPError
 from subprocess import check_call
 from getopt import getopt
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
-HASHES_FILE = os.path.expandvars('$XDG_DATA_HOME/aria2hashes')
+HASHES_FILE = '{}/diana.lst'.format(os.getenv('XDG_DATA_HOME', '{}/.local/share'.format(os.getenv('HOME'))))
 PREVIEW_COMMAND = 'open'
 INFO_COMMAND = 'fileinfo'
 BLACK = 30
@@ -58,11 +61,11 @@ def call_func(func, params=[]):
         elif type(err) is HTTPError:
             code = err.code
         if code == 111:
-            print('the daemon is not running', file = sys.stderr)
+            print('The daemon is not running.', file = sys.stderr)
         elif code == -1:
-            print('encountered an error of type: %s' % type(err), file = sys.stderr)
+            print('Encountered an error of type: %s.' % type(err), file = sys.stderr)
         else:
-            print('server replied: %s' % code, file = sys.stderr)
+            print('Server replied: %s.' % code, file = sys.stderr)
         exit(1)
     data = c.read().decode('utf-8')
     response = json.loads(data)
@@ -81,7 +84,7 @@ def get_files(gids):
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
-            print('failed on %s' % g)
+            print('Failed on %s.' % g)
         else:
             if len(gids) > 1:
                 print('%s: ' % magenta(g))
@@ -112,7 +115,7 @@ def apply_func_on_gids(fn, gids):
     for g in gids:
         response = call_func(fn, [g])
         if not response:
-            print('failed on %s' % g)
+            print('Failed on %s.' % g)
 
 def pattern_match(index, pattern):
     for p in pattern:
@@ -135,7 +138,7 @@ def command_by_gid(command, gids, options):
     for g in gids:
         response = call_func('getFiles', [g])
         if not response:
-            print('failed on %s' % g)
+            print('Failed on %s.' % g)
         else:
             if len(gids) > 1:
                 print('%s: ' % magenta(g))
@@ -193,7 +196,7 @@ def add_items(items, options={}):
                 response = call_func('addMetalink', [item_content, options])
 
         if not response:
-            print('failed on %s' % item)
+            print('Failed on %s.' % item)
         else:
             print(response['result'])
 
@@ -413,10 +416,10 @@ def main():
         arguments = args[1:]
 
         if action in NO_ARGS_ACTIONS and len(arguments) > 0:
-            print('action \'%s\' takes no arguments' % action, file=sys.stderr)
+            print('Action \'%s\' takes no arguments' % action, file=sys.stderr)
             sys.exit(1)
         elif action in ARGS_ACTIONS and len(arguments) < 1:
-            print('no arguments given for action \'%s\'' % action, file=sys.stderr)
+            print('No arguments given for action \'%s\'' % action, file=sys.stderr)
             sys.exit(1)
 
         if action == 'add':
@@ -456,7 +459,7 @@ def main():
         elif action == 'kill':
             save_kill()
         else:
-            print('unknown action: %s' % action, file=sys.stderr)
+            print('Unknown action: %s' % action, file=sys.stderr)
             exit(1)
     else:
         usage()
