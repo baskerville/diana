@@ -3,22 +3,29 @@
 diana list > /dev/null 2>&1
 
 if [ $? -eq 0 ] ; then
-    print '%s.\n' 'The daemon is already running' >&2
+    printf '%s.\n' 'The daemon is already running' >&2
     exit 1
 fi
 
 DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-${HOME}}}
+
+aria2c -D --enable-rpc -j 13 -d "$DOWNLOAD_DIR"
+
 HASHES_FILE=${XDG_DATA_HOME:-${HOME}/.local/share}/diana.lst
 BACKUP_HASHES=${HASHES_FILE}.bak
 
-[ ! -e "$HASHES_FILE" -a -e "$BACKUP_HASHES" ] && mv "$BACKUP_HASHES" "$HASHES_FILE"
+if [ ! -e "$HASHES_FILE" ] ; then
+    if [ -e "$BACKUP_HASHES" ] ; then
+        mv "$BACKUP_HASHES" "$HASHES_FILE"
+    else
+        exit 0
+    fi
+fi
 
 tmp_file=$(mktemp)
 sort -u "$HASHES_FILE" > "$tmp_file"
 cp "$tmp_file" "$HASHES_FILE"
 rm "$tmp_file"
-
-aria2c -D --enable-rpc -j 13 -d "$DOWNLOAD_DIR"
 
 for line in $(cat "$HASHES_FILE") ; do
     rhsh=${line%:*}
