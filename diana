@@ -309,35 +309,29 @@ def colored_string(c, s):
 def usage():
     print('''
 SYNOPSIS
-    %s <action> [arguments]
+    %s ACTION [ARGUMENTS]
 
 ACTIONS
     list
-        Show the list of active downloads.
+        Output the list of active downloads.
 
     paused
-        Show the list of paused downloads.
+        Output the list of paused downloads.
 
     stopped
-        Show the list of stopped downloads.
+        Output the list of stopped downloads.
+
+    info [--select-file=...] GID ...
+        Output informations regarding the given GIDs.
+
+    files GID ...
+        Output the files owned by the downloads corresponding to the given GIDs.
 
     errors
-        Show the list of encountered errors.
+        Output the list of errors.
 
     stats
-        Show download bandwidth statistics.
-
-    sleep
-        Pause all the active downloads.
-
-    wake
-        Resume all the paused downloads.
-
-    purge
-        Clear the list of stopped downloads and errors.
-
-    clean
-        Stop seeding completed downloads.
+        Output download bandwidth statistics.
 
     add [--select-file=...] ITEM ...
         Download the given items (local or remote URLs to torrents, etc.).
@@ -354,15 +348,20 @@ ACTIONS
     resume GID ...
         Resume the downloads corresponding to the given GIDs.
 
-    files GID ...
-        Show the files owned by the downloads corresponding to the given GIDs.
-
-    info [--select-file=...] GID ...
-        Retrieve informations regarding the given GIDs.
-
     preview [--select-file=...] GID ...
         Preview all the files from all the downloads corresponding to the given GIDs.
 
+    sleep
+        Pause all the active downloads.
+
+    wake
+        Resume all the paused downloads.
+
+    purge
+        Clear the list of stopped downloads and errors.
+
+    clean
+        Stop seeding completed downloads.
     ''' % os.path.basename(sys.argv[0]))
     sys.exit()
 
