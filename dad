@@ -1,50 +1,67 @@
 #! /bin/sh
 
-diana list > /dev/null 2>&1
+usage() {
+    printf '%s [-h|-d DOWNLOAD_DIR] start|stop\n' "${0##*/}"
+}
 
-if [ $? -eq 0 ] ; then
-    printf '%s.\n' 'The daemon is already running' >&2
+download_dir=${DIANA_DOWNLOAD_DIR:-${XDG_DOWNLOAD_DIR:-${HOME}}}
+
+while getopts 'hd:' opt ; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        d)
+            download_dir=$OPTARG
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+if [ $# -ne 1 ] ; then
+    usage
     exit 1
 fi
 
-DOWNLOAD_DIR=${1:-${XDG_DOWNLOAD_DIR:-${HOME}}}
+daemon_pid=/tmp/diana-daemon.pid
 
-aria2c -D --enable-rpc -j 13 -d "$DOWNLOAD_DIR"
-
-HASHES_FILE=${XDG_DATA_HOME:-${HOME}/.local/share}/diana.lst
-BACKUP_HASHES=${HASHES_FILE}.bak
-
-if [ ! -e "$HASHES_FILE" ] ; then
-    if [ -e "$BACKUP_HASHES" ] ; then
-        mv "$BACKUP_HASHES" "$HASHES_FILE"
-    else
-        exit 0
-    fi
-fi
-
-tmp_file=$(mktemp)
-sort -u "$HASHES_FILE" > "$tmp_file"
-cp "$tmp_file" "$HASHES_FILE"
-rm "$tmp_file"
-
-for line in $(cat "$HASHES_FILE") ; do
-    rhsh=${line%:*}
-    sel=${line#*:}
-    hsh=${rhsh#_}
-
-    for tor in "$DOWNLOAD_DIR"/*.torrent ; do
-        match=$(aria2c -S "$tor" | grep -m 1 "$hsh")
-        if [ -n "$match" ] ; then
-            printf '%s\n' "$tor"
-            gid=$(diana --select-file="$sel" add "$tor")
-            [ $? -ne 0 ] && exit 1
-            case $rhsh in
-                _*)
-                    diana pause $gid
-                    ;;
-            esac
+case "$1" in
+    start)
+        if [ -e "$daemon_pid" ] ; then
+            printf '%s\n' 'The daemon is already running.' >&2
+            exit 1
         fi
-    done
-done
 
-mv "$HASHES_FILE" "$BACKUP_HASHES"
+        XDG_DATA_HOME=${XDG_DATA_HOME:-${HOME}/.local/share}
+        diana_session=${XDG_DATA_HOME}/diana.session
+
+        [ ! -e "$diana_session" ] && touch "$diana_session"
+
+        aria2c --daemon --enable-rpc --continue --dir "$download_dir" --input-file "$diana_session" --save-session "$diana_session"
+
+        pgrep -n -x aria2c > "$daemon_pid"
+
+        if [ $? -ne 0 ] ; then
+            printf '%s\n' 'The daemon failed to start.' >&2
+            rm "$daemon_pid"
+            exit 1
+        fi
+        ;;
+    stop)
+        if [ ! -e "$daemon_pid" ] ; then
+            printf '%s\n' 'The daemon is not running.' >&2
+            exit 1
+        fi
+
+        kill $(cat "$daemon_pid") > /dev/null 2>&1
+
+        if [ $? -ne 0 ] ; then
+            printf '%s\n' 'Could not stop the daemon.' >&2
+            exit 1
+        else
+            rm "$daemon_pid"
+        fi
+        ;;
+esac

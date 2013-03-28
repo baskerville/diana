@@ -13,7 +13,6 @@ from getopt import getopt
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
-HASHES_FILE = '{}/diana.lst'.format(os.getenv('XDG_DATA_HOME', '{}/.local/share'.format(os.getenv('HOME'))))
 PREVIEW_COMMAND = 'open'
 INFO_COMMAND = 'fileinfo'
 BLACK = 30
@@ -200,36 +199,6 @@ def add_items(items, options={}):
         else:
             print(response['result'])
 
-def save_kill():
-    hf = open(HASHES_FILE, 'w')
-    downloads = []
-    active = get_active()
-    paused = get_waiting()
-    if active:
-        downloads.extend(active['result'])
-    if paused:
-        downloads.extend(paused['result'])
-    for d in downloads:
-        if 'infoHash' in d:
-            gid = d['gid']
-            infoHash = d['infoHash']
-            status = d['status']
-            if status == 'paused':
-                infoHash = '_%s' % infoHash
-            response = call_func('getFiles', [gid])
-            if response:
-                files = response['result']
-                selection = []
-                for f in files:
-                    index = f['index']
-                    selected = f['selected']
-                    if selected == 'true':
-                        selection.append(index)
-                select_file_argument = ','.join(selection)
-                hf.write('%s:%s\n' % (infoHash, select_file_argument))
-    hf.close()
-    call_func('shutdown')
-
 def pause_all():
     call_func('pauseAll')
 
@@ -370,9 +339,6 @@ ACTIONS
     clean
         Stop seeding completed downloads.
 
-    kill
-        Kill the daemon.
-
     add [--select-file=...] ITEM ...
         Download the given items (local or remote URLs to torrents, etc.).
 
@@ -456,15 +422,13 @@ def main():
             call_func('purgeDownloadResult')
         elif action == 'clean':
             clean()
-        elif action == 'kill':
-            save_kill()
         else:
             print('Unknown action: %s' % action, file=sys.stderr)
             exit(1)
     else:
         usage()
 
-NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'stats', 'sleep', 'wake', 'purge', 'clean', 'kill')
+NO_ARGS_ACTIONS = ('list', 'paused', 'stopped', 'errors', 'stats', 'sleep', 'wake', 'purge', 'clean')
 ARGS_ACTIONS = ('add', 'remove', 'forcerm', 'preview', 'pause', 'resume', 'files')
 
 EXIT_CODES = {

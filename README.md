@@ -1,77 +1,51 @@
-![diana] (https://github.com/baskerville/diana/raw/master/preview/diana_logo.jpg)
+![diana] (https://github.com/baskerville/diana/raw/master/logo/diana-logo.jpg)
 
-    SYNOPSIS
-        diana <action> [arguments]
+## Usage
 
-    ACTIONS 
-        list
-            Show the list of active downloads.
+    dad [-h|-d DOWNLOAD_DIR] start|stop
+    diana ACTION [ARGUMENTS]
 
-        paused
-            Show the list of paused downloads.
+## Actions
 
-        stopped
-            Show the list of stopped downloads.
+- `list` — Output the list of active downloads.
 
-        errors
-            Show the list of encountered errors.
+- `paused` — Output the list of paused downloads.
 
-        stats
-            Show download bandwidth statistics.
+- `stopped` — Output the list of stopped downloads.
 
-        sleep
-            Pause all the active downloads.
+- `info [--select-file=...] GID ...` — Output informations regarding the given GIDs.
 
-        wake
-            Resume all the paused downloads.
+- `files GID ...` — Output the files owned by the downloads corresponding to the given GIDs.
 
-        purge
-            Clear the list of stopped downloads and errors.
+- `errors` — Output the list of errors.
 
-        clean
-            Stop seeding completed downloads.
+- `stats` — Output download bandwidth statistics.
 
-        kill
-            Kill the daemon.
+- `add [--select-file=...] ITEM ...` — Download the given items (local or remote URLs to torrents, etc.).
 
-        add [--select-file=...] ITEM ...
-            Download the given items (local or remote URLs to torrents, etc.).
+- `remove GID ...` — Remove the downloads corresponding to the given GIDs.
 
-        remove GID ...
-            Remove the downloads corresponding to the given GIDs.
+- `forcerm GID ...` — Forcibly remove the downloads corresponding to the given GIDs.
 
-        forcerm GID ...
-            Forcibly remove the downloads corresponding to the given GIDs.
+- `pause GID ...` — Pause the downloads corresponding to the given GIDs.
 
-        pause GID ...
-            Pause the downloads corresponding to the given GIDs.
+- `resume GID ...` — Resume the downloads corresponding to the given GIDs.
 
-        resume GID ...
-            Resume the downloads corresponding to the given GIDs.
+- `preview [--select-file=...] GID ...` — Preview all the files from all the downloads corresponding to the given GIDs.
 
-        files GID ...
-            Show the files owned by the downloads corresponding to the given GIDs.
+- `sleep` — Pause all the active downloads.
 
-        info [--select-file=...] GID ...
-            Retrieve informations regarding the given GIDs.
+- `wake` — Resume all the paused downloads.
 
-        preview [--select-file=...] GID ...
-            Preview all the files from all the downloads corresponding to the given GIDs.
+- `purge` — Clear the list of stopped downloads and errors.
 
+- `clean` — Stop seeding completed downloads.
 
-## Prerequisites
+## Environment Variables
 
-First launch the daemon which is called `dad`.
-
-## Get the File Indexes
-
-This function might help:
-
-    tl () {
-            aria2c -S "$@" | grep '\./'
-    }
-
+- `DIANA_DOWNLOAD_DIR` — Used by the daemon.
 
 ## Dependencies
 
-`aria2` and `python3`.
+- aria2
+- python3
