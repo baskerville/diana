@@ -367,7 +367,7 @@ ACTIONS
 
 
 def main():
-    opts, args = getopt(sys.argv[1:], 'h', ['help', 'pause', 'out=', 'header=', 'referer=', 'user-agent=', 'select-file=', 'http-user=', 'http-passwd='])
+    opts, args = getopt(sys.argv[1:], 'h', ['help', 'pause', 'out=', 'header=', 'referer=', 'user-agent=', 'dir=', 'select-file=', 'http-user=', 'http-passwd='])
     options = {}
 
     for o, a in opts:
