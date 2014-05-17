@@ -15,6 +15,8 @@ MAX_NAME_LEN = 50
 ELLIPSIS = '...'
 PREVIEW_COMMAND = os.getenv('DIANA_PREVIEW_COMMAND', 'open')
 INFO_COMMAND = os.getenv('DIANA_INFO_COMMAND', 'file')
+SECRET_TOKEN = os.getenv('DIANA_SECRET_TOKEN')
+TOKEN_PREFIX = 'token:'
 BLACK = 30
 GREEN = 32
 BLUE = 34
@@ -50,6 +52,8 @@ def arrival (download_speed, remaining_length):
     return result
 
 def call_func(func, params=[]):
+    if SECRET_TOKEN != None:
+        params.insert(0, '{}{}'.format(TOKEN_PREFIX, SECRET_TOKEN))
     jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf-8')
     try:
         c = urllib.request.urlopen('http://localhost:6800/jsonrpc', jsonreq)

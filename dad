@@ -1,16 +1,20 @@
 #! /bin/sh
 
 usage() {
-    printf '%s [-h|-d DOWNLOAD_DIR] start|stop\n' "${0##*/}"
+    printf '%s [-h|-s SECRET_TOKEN|-d DOWNLOAD_DIR] start|stop\n' "${0##*/}"
 }
 
 download_dir=${DIANA_DOWNLOAD_DIR:-${XDG_DOWNLOAD_DIR:-${HOME}}}
+secret_token=$DIANA_SECRET_TOKEN
 
-while getopts 'hd:' opt ; do
+while getopts 'hs:d:' opt ; do
     case "$opt" in
         h)
             usage
             exit 0
+            ;;
+        s)
+            secret_token=$OPTARG
             ;;
         d)
             download_dir=$OPTARG
@@ -39,7 +43,9 @@ case "$1" in
 
         [ ! -e "$diana_session" ] && touch "$diana_session"
 
-        aria2c --daemon --enable-rpc --continue --dir "$download_dir" --input-file "$diana_session" --save-session "$diana_session"
+        args='--daemon --enable-rpc --continue'
+        [ -n "$secret_token" ] && args="$args --rpc-secret $secret_token"
+        aria2c $args --dir "$download_dir" --input-file "$diana_session" --save-session "$diana_session"
 
         pgrep -n -x aria2c > "$daemon_pid"
 

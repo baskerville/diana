@@ -2,7 +2,7 @@
 
 ## Usage
 
-    dad [-h|-d DOWNLOAD_DIR] start|stop
+    dad [-h|-s SECRET_TOKEN|-d DOWNLOAD_DIR] start|stop
     diana ACTION [ARGUMENTS]
 
 ## Actions
@@ -46,6 +46,7 @@
 - `DIANA_DOWNLOAD_DIR` — Used by the daemon.
 - `DIANA_PREVIEW_COMMAND` — Command used to preview files.
 - `DIANA_INFO_COMMAND` — Command used to get file informations.
+- `DIANA_SECRET_TOKEN` — Secret RPC authorization token.
 
 All commands receive the partial file as first argument.
 
