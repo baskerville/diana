@@ -44,6 +44,10 @@
 ## Environment Variables
 
 - `DIANA_DOWNLOAD_DIR` — Used by the daemon.
+- `DIANA_PREVIEW_COMMAND` — Command used to preview files.
+- `DIANA_INFO_COMMAND` — Command used to get file informations.
+
+All commands receive the partial file as first argument.
 
 ## Dependencies
 

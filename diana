@@ -13,8 +13,8 @@ from getopt import getopt
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
-PREVIEW_COMMAND = 'open'
-INFO_COMMAND = 'fileinfo'
+PREVIEW_COMMAND = os.getenv('DIANA_PREVIEW_COMMAND', 'open')
+INFO_COMMAND = os.getenv('DIANA_INFO_COMMAND', 'file')
 BLACK = 30
 GREEN = 32
 BLUE = 34
