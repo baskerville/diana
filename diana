@@ -13,6 +13,7 @@ from getopt import getopt
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
+JSON_RPC_URI = 'http://localhost:6800/jsonrpc'
 PREVIEW_COMMAND = os.getenv('DIANA_PREVIEW_COMMAND', 'open')
 INFO_COMMAND = os.getenv('DIANA_INFO_COMMAND', 'file')
 SECRET_TOKEN = os.getenv('DIANA_SECRET_TOKEN')
@@ -56,7 +57,7 @@ def call_func(func, params=[]):
         params.insert(0, '{}{}'.format(TOKEN_PREFIX, SECRET_TOKEN))
     jsonreq = json.dumps({'id' : 'foo', 'method' : 'aria2.%s' % func, 'params' : params}).encode('utf-8')
     try:
-        c = urllib.request.urlopen('http://localhost:6800/jsonrpc', jsonreq)
+        c = urllib.request.urlopen(JSON_RPC_URI, jsonreq)
     except IOError as err:
         code = -1
         if type(err) is URLError:
@@ -371,14 +372,28 @@ ACTIONS
 
 
 def main():
-    opts, args = getopt(sys.argv[1:], 'h', ['help', 'pause', 'out=', 'header=', 'referer=', 'user-agent=', 'dir=', 'select-file=', 'http-user=', 'http-passwd='])
-    options = {}
+    opts, args = getopt(sys.argv[1:], 'hu:p:', ['help', 'pause', 'out=', 'header=', 'referer=', 'user-agent=', 'dir=', 'select-file=', 'http-user=', 'http-passwd=', 'username=', 'password='])
 
-    for o, a in opts:
-        if o in ('-h', '--help'):
+    options = {}
+    username = None
+    password = None
+
+    for key, value in opts:
+        if key in ('-h', '--help'):
             usage()
+        elif key in ('-u', '--username'):
+            username = value
+        elif key in ('-p', '--password'):
+            password = value
         else:
-            options.update({o.replace('--',''):a})
+            options.update({key.replace('--',''):value})
+
+    if username != None and password != None:
+        pass_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+        pass_mgr.add_password(None, JSON_RPC_URI, username, password)
+        auth_handler = urllib.request.HTTPBasicAuthHandler(pass_mgr)
+        opener = urllib.request.build_opener(auth_handler)
+        urllib.request.install_opener(opener)
 
     if len(args) > 0:
         action = args[0]

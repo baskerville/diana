@@ -2,8 +2,8 @@
 
 ## Usage
 
-    dad [-h|-s SECRET_TOKEN|-d DOWNLOAD_DIR] start|stop
-    diana ACTION [ARGUMENTS]
+    dad [-h|-d DOWNLOAD_DIR|-s SECRET_TOKEN|-u USERNAME|-p PASSWORD] start|stop
+    diana [-h|-u USERNAME|-p PASSWORD] ACTION [ARGUMENTS]
 
 ## Actions
 
