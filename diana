@@ -13,10 +13,12 @@ from getopt import getopt
 
 MAX_NAME_LEN = 50
 ELLIPSIS = '...'
-JSON_RPC_URI = 'http://localhost:6800/jsonrpc'
+HOST = os.getenv('DIANA_HOST', 'localhost')
+PORT = os.getenv('DIANA_PORT', '6800')
 PREVIEW_COMMAND = os.getenv('DIANA_PREVIEW_COMMAND', 'open')
 INFO_COMMAND = os.getenv('DIANA_INFO_COMMAND', 'file')
 SECRET_TOKEN = os.getenv('DIANA_SECRET_TOKEN')
+JSON_RPC_URI = 'http://%s:%s/jsonrpc' % (HOST, PORT)
 TOKEN_PREFIX = 'token:'
 BLACK = 30
 GREEN = 32
