@@ -41,9 +41,16 @@ daemon_pid=/tmp/diana-daemon.pid
 
 case "$1" in
 	start)
+		# If diana daemon pid file is found
 		if [ -e "$daemon_pid" ] ; then
-			printf '%s\n' 'The daemon is already running.' >&2
-			exit 1
+			# remove pid file if referenced process id is not running
+			if ! ps -p $(cat "$daemon_pid") > /dev/null 2>&1 ; then
+	    			rm -f $daemon_pid
+	  		# otherwise just exit
+	  		else
+				printf '%s\n' 'The daemon is already running.' >&2
+				exit 1
+			fi
 		fi
 
 		XDG_DATA_HOME=${XDG_DATA_HOME:-${HOME}/.local/share}
@@ -62,7 +69,7 @@ case "$1" in
 
 		if [ $? -ne 0 ] ; then
 			printf '%s\n' 'The daemon failed to start.' >&2
-			rm "$daemon_pid"
+			rm -f "$daemon_pid"
 			exit 1
 		fi
 		;;
@@ -78,7 +85,7 @@ case "$1" in
 			printf '%s\n' 'Could not stop the daemon.' >&2
 			exit 1
 		else
-			rm "$daemon_pid"
+			rm -f "$daemon_pid"
 		fi
 		;;
 esac
