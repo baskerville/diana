@@ -1,4 +1,4 @@
-![diana] (https://github.com/baskerville/diana/raw/master/logo/diana-logo.jpg)
+![diana](https://github.com/baskerville/diana/raw/master/logo/diana-logo.jpg)
 
 ## Usage
 
